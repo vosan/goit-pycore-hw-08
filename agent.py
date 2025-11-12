@@ -1,3 +1,5 @@
+# python
+import pickle
 from collections import UserDict
 from datetime import datetime, timedelta
 
@@ -143,6 +145,21 @@ class AddressBook(UserDict):
         return upcoming_birthdays
 
 
+def save_data(book: AddressBook, filename: str = "addressbook.pkl"):
+    """Serialize and save AddressBook to disk using pickle."""
+    with open(filename, "wb") as f:
+        pickle.dump(book, f)
+
+
+def load_data(filename: str = "addressbook.pkl") -> AddressBook:
+    """Load AddressBook from disk or return a new one if file not found."""
+    try:
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return AddressBook()
+
+
 def input_error(func):
     """Decorator to handle input errors."""
 
@@ -284,43 +301,49 @@ def birthdays(args, book: AddressBook):
 
 
 def main():
-    book = AddressBook()
+    book = load_data()
     print("Welcome to the assistant bot!")
 
-    while True:
-        user_input = input("Enter a command: ")
-        command, *args = parse_input(user_input)
+    try:
+        while True:
+            user_input = input("Enter a command: ")
+            command, *args = parse_input(user_input)
 
-        if command in ["close", "exit"]:
-            print("Good bye!")
-            break
+            if command in ["close", "exit"]:
+                save_data(book)
+                print("Good bye!")
+                break
 
-        elif command == "hello":
-            print("How can I help you?")
+            elif command == "hello":
+                print("How can I help you?")
 
-        elif command == "add":
-            print(add_contact(args, book))
+            elif command == "add":
+                print(add_contact(args, book))
 
-        elif command == "change":
-            print(change_contact(args, book))
+            elif command == "change":
+                print(change_contact(args, book))
 
-        elif command == "phone":
-            print(show_phone(args, book))
+            elif command == "phone":
+                print(show_phone(args, book))
 
-        elif command == "all":
-            print(show_all(args, book))
+            elif command == "all":
+                print(show_all(args, book))
 
-        elif command == "add-birthday":
-            print(add_birthday(args, book))
+            elif command == "add-birthday":
+                print(add_birthday(args, book))
 
-        elif command == "show-birthday":
-            print(show_birthday(args, book))
+            elif command == "show-birthday":
+                print(show_birthday(args, book))
 
-        elif command == "birthdays":
-            print(birthdays(args, book))
+            elif command == "birthdays":
+                print(birthdays(args, book))
 
-        else:
-            print("Invalid command.")
+            else:
+                print("Invalid command.")
+    except (KeyboardInterrupt, EOFError):
+        # Ensure data is saved on interrupt/EOF
+        print("\nGood bye!")
+        save_data(book)
 
 
 if __name__ == "__main__":
